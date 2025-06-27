@@ -16,13 +16,14 @@ function renderQuoteToDOM(quoteObj) {
 
 // ======= random quotes =======
 function showRandomQuote() {
-  if (quotes.length === 0) {
-    alert("No quotes available.");
-    return;
-  }
-  const randomIndex = Math.floor(Math.random() * quotes.length);
-  const randomQuote = quotes[randomIndex];
-  renderQuoteToDOM(randomQuote);
+  const quoteDisplay = document.getElementById("quoteDisplay");
+  quoteDisplay.innerHTML = "";
+  const quoteText = document.createElement("p");
+  quoteText.textContent = `Quote: ${quoteObj.text}`;
+  const quoteCategory = document.createElement("p");
+  quoteCategory.textContent = `Category: ${quoteObj.category}`;
+  quoteDisplay.appendChild(quoteText);
+  quoteDisplay.appendChild(quoteCategory);
 }
 
 // ======= add quotes =======
