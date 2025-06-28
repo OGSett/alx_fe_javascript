@@ -1,6 +1,8 @@
+// ======= quotes array =======
 let quotes = [];
 
 const SERVER_URL = "http://localhost:5000/quotes";
+const MOCK_API_URL = "https://jsonplaceholder.typicode.com/posts";
 
 // ======= STORAGE FUNCTIONS =======
 function saveQuotes() {
@@ -48,7 +50,7 @@ function renderQuotes(filteredQuotes) {
   });
 }
 
-// ======= CATEGORY DROPDOWN =======
+// ======= CATEGORY / DROPDOWN =======
 function populateCategories() {
   const categoryFilter = document.getElementById("categoryFilter");
   categoryFilter.innerHTML = "";
@@ -88,7 +90,7 @@ function filterQuotes() {
   }
 }
 
-// ======= CREATE QUOTE FORM =======
+// ======= ADD QUOTE FORM =======
 function createAddQuoteForm() {
   const formContainer = document.createElement("div");
 
@@ -121,13 +123,34 @@ function addQuote() {
     return;
   }
 
-  quotes.push({ text, category });
+  const newQuote = { text, category };
+  quotes.push(newQuote);
   saveQuotes();
   populateCategories();
   filterQuotes();
 
+  postQuoteToServer(newQuote);
+
   document.getElementById("newQuoteText").value = "";
   document.getElementById("newQuoteCategory").value = "";
+}
+
+// ======= POST TO MOCK API =======
+async function postQuoteToServer(quote) {
+  try {
+    const response = await fetch(MOCK_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(quote)
+    });
+
+    const result = await response.json();
+    console.log("Posted to server:", result);
+  } catch (error) {
+    console.error("Failed to post quote:", error);
+  }
 }
 
 // ======= EXPORT TO JSON FILE =======
@@ -163,28 +186,25 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// ======= FETCH FROM SERVER (REQUIRED NAME) =======
+// ======= FETCH FROM MOCK SERVER =======
 async function fetchQuotesFromServer() {
   try {
-    const response = await fetch("https://jsonplaceholder.typicode.com/posts");
-    const data = await response.json();
-    return data.slice(0, 5).map(post => ({
-      text: post.title,
-      category: "Server"
-    }));
-  } catch (error) {
-    console.error("Failed to fetch quotes from server:", error);
+    const res = await fetch(SERVER_URL);
+    return await res.json();
+  } catch (err) {
+    console.error("Failed to fetch from server:", err);
     return [];
   }
 }
 
-// ======= SYNC FUNCTION (REQUIRED NAME) =======
+// ======= SYNC QUOTES =======
 async function syncQuotes() {
   const serverQuotes = await fetchQuotesFromServer();
   let updates = 0;
 
   serverQuotes.forEach(serverQuote => {
     const match = quotes.find(localQuote => localQuote.text === serverQuote.text);
+
     if (match) {
       if (match.category !== serverQuote.category) {
         match.category = serverQuote.category;
@@ -204,7 +224,7 @@ async function syncQuotes() {
   }
 }
 
-// ======= UI SYNC NOTIFICATION =======
+// ======= NOTIFICATION =======
 function showSyncNotification(message) {
   const banner = document.getElementById("syncNotification");
   banner.textContent = message;
@@ -215,7 +235,7 @@ function showSyncNotification(message) {
   }, 5000);
 }
 
-// ======= DOM READY =======
+// ======= FINAL STATE =======
 document.addEventListener("DOMContentLoaded", () => {
   loadQuotes();
   createAddQuoteForm();
@@ -228,6 +248,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("exportQuotesButton").addEventListener("click", exportToJsonFile);
 
-  // Periodic server sync
   setInterval(syncQuotes, 30000);
 });
