@@ -220,7 +220,7 @@ async function syncQuotes() {
     saveQuotes();
     populateCategories();
     filterQuotes();
-    showSyncNotification(`${updates} quote(s) synced from the server.`);
+    showSyncNotification("Quotes synced with server!");
   }
 }
 
