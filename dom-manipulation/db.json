@@ -1,0 +1,16 @@
+{
+  "quotes": [
+    {
+      "text": "Talk is cheap. Show me the code.",
+      "category": "Tech"
+    },
+    {
+      "text": "Be yourself; everyone else is already taken.",
+      "category": "Life"
+    },
+    {
+      "text": "Code is like humor. When you have to explain it, it’s bad.",
+      "category": "Programming"
+    }
+  ]
+}

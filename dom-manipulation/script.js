@@ -2,7 +2,9 @@
 
 let quotes = [];
 
-// ======= localstorage =======
+const SERVER_URL = "http://localhost:5000/quotes";
+
+// ======= STORAGE FUNCTIONS =======
 function saveQuotes() {
   localStorage.setItem("quotes", JSON.stringify(quotes));
 }
@@ -66,10 +68,9 @@ function populateCategories() {
     categoryFilter.appendChild(option);
   });
 
-  // Set last selected category from localStorage
-  const lastSelected = localStorage.getItem("lastSelectedCategory");
-  if (lastSelected && categories.includes(lastSelected)) {
-    categoryFilter.value = lastSelected;
+  const selectedCategory = localStorage.getItem("lastSelectedCategory");
+  if (selectedCategory && categories.includes(selectedCategory)) {
+    categoryFilter.value = selectedCategory;
     filterQuotes();
   } else {
     renderQuotes(quotes);
@@ -80,7 +81,6 @@ function populateCategories() {
 function filterQuotes() {
   const selectedCategory = document.getElementById("categoryFilter").value;
   localStorage.setItem("lastSelectedCategory", selectedCategory);
-
 
   if (selectedCategory === "all") {
     renderQuotes(quotes);
@@ -165,6 +165,43 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
+// ======= sync with server =======
+function syncWithServer() {
+  fetch(SERVER_URL)
+    .then(res => res.json())
+    .then(serverQuotes => {
+      let updates = 0;
+
+      serverQuotes.forEach(serverQuote => {
+        const match = quotes.find(localQuote =>
+          localQuote.text === serverQuote.text
+        );
+
+        if (match) {
+          // Conflict resolution: if category differs, update it
+          if (match.category !== serverQuote.category) {
+            match.category = serverQuote.category;
+            updates++;
+          }
+        } else {
+          // New quote from server
+          quotes.push(serverQuote);
+          updates++;
+        }
+      });
+
+      if (updates > 0) {
+        saveQuotes();
+        populateCategories();
+        filterQuotes();
+        showSyncNotification(`${updates} quote(s) synced from the server.`);
+      }
+    })
+    .catch(err => {
+      console.error("Failed to sync with server:", err);
+    }); 
+}
+
 // ======= final state =======
 document.addEventListener("DOMContentLoaded", () => {
   loadQuotes();
@@ -177,4 +214,18 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("exportQuotesButton").addEventListener("click", exportToJsonFile);
+
+  // Start periodic sync every 30 seconds
+  setInterval(syncWithServer, 30000);
 });
+
+
+function showSyncNotification(message) {
+  const banner = document.getElementById("syncNotification");
+  banner.textContent = message;
+  banner.style.display = "block";
+
+  setTimeout(() => {
+    banner.style.display = "none";
+  }, 5000);
+}
