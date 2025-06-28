@@ -78,13 +78,14 @@ function populateCategories() {
 
 // ======= filter by category =======
 function filterQuotes() {
-  const selected = document.getElementById("categoryFilter").value;
-  localStorage.setItem("lastSelectedCategory", selected);
+  const selectedCategory = document.getElementById("categoryFilter").value;
+  localStorage.setItem("lastSelectedCategory", selectedCategory);
 
-  if (selected === "all") {
+
+  if (selectedCategory === "all") {
     renderQuotes(quotes);
   } else {
-    const filtered = quotes.filter(q => q.category === selected);
+    const filtered = quotes.filter(q => q.category === selectedCategory);
     renderQuotes(filtered);
   }
 }
