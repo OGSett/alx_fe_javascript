@@ -164,43 +164,44 @@ function importFromJsonFile(event) {
 }
 
 // ======= FETCH FROM SERVER (REQUIRED NAME) =======
-function fetchQuotesFromServer() {
-  return fetch(SERVER_URL)
-    .then(res => res.json())
-    .catch(err => {
-      console.error("Failed to fetch quotes from server:", err);
-      return [];
-    });
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+    const data = await response.json();
+    return data.slice(0, 5).map(post => ({
+      text: post.title,
+      category: "Server"
+    }));
+  } catch (error) {
+    console.error("Failed to fetch quotes from server:", error);
+    return [];
+  }
 }
 
 // ======= SYNC FUNCTION (REQUIRED NAME) =======
-function syncQuotes() {
-  fetchQuotesFromServer().then(serverQuotes => {
-    let updates = 0;
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+  let updates = 0;
 
-    serverQuotes.forEach(serverQuote => {
-      const match = quotes.find(localQuote =>
-        localQuote.text === serverQuote.text
-      );
-
-      if (match) {
-        if (match.category !== serverQuote.category) {
-          match.category = serverQuote.category;
-          updates++;
-        }
-      } else {
-        quotes.push(serverQuote);
+  serverQuotes.forEach(serverQuote => {
+    const match = quotes.find(localQuote => localQuote.text === serverQuote.text);
+    if (match) {
+      if (match.category !== serverQuote.category) {
+        match.category = serverQuote.category;
         updates++;
       }
-    });
-
-    if (updates > 0) {
-      saveQuotes();
-      populateCategories();
-      filterQuotes();
-      showSyncNotification(`${updates} quote(s) synced from the server.`);
+    } else {
+      quotes.push(serverQuote);
+      updates++;
     }
   });
+
+  if (updates > 0) {
+    saveQuotes();
+    populateCategories();
+    filterQuotes();
+    showSyncNotification(`${updates} quote(s) synced from the server.`);
+  }
 }
 
 // ======= UI SYNC NOTIFICATION =======
