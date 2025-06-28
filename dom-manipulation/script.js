@@ -166,7 +166,7 @@ function importFromJsonFile(event) {
 }
 
 // ======= sync with server =======
-function syncWithServer() {
+function syncQuotes() {
   fetch(SERVER_URL)
     .then(res => res.json())
     .then(serverQuotes => {
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("exportQuotesButton").addEventListener("click", exportToJsonFile);
 
   // Start periodic sync every 30 seconds
-  setInterval(syncWithServer, 30000);
+  setInterval(syncQuotes, 30000);
 });
 
 
